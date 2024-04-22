@@ -1,61 +1,80 @@
 import axios from 'axios';
-import React from 'react';
-import { useState } from 'react';
-import { Link , useNavigate} from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Staff = () => {
+    const navigate = useNavigate();
 
-    const history = useNavigate();
-
-    const [text, setText] = useState('');
+    // State variables to hold form input values
+    const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
 
-    async function submit(e){
-        e.preventDefault();
+    // Function to handle form submission
+    async function handleSubmit(e) {
+        e.preventDefault(); // Prevent form from refreshing the page
 
-        try{
+        // Validate input fields
+        if (!username || !password) {
+            alert("Please enter both username and password.");
+            return;
+        }
 
-            await axios.post("http://localhost:8000/staff", {
-                text, password
-            })
-            .then(res => {
-                if(res.data == "exist"){
-                    history("/home",{state:{id:text}})
-                }
-                else if(res.data == "notexist"){
-                    alert("Staff is not registered")
-                }
-            })
-            .catch(e => {
-                alert("wrong details")
-                console.log(e);
-            })
+        try {
+            // Send POST request to server
+            const response = await axios.post("http://localhost:8000/staff", {
+                text: username,
+                password
+            });
 
-        }catch(e){
-            console.log(e);
-        }   
+            // Handle server response
+            if (response.data === "exist") {
+                // Navigate to home page if login is successful
+                navigate("/home", { state: { id: username } });
+            } else if (response.data === "notexist") {
+                alert("Staff not registered. Please contact the administrator.");
+            }
+        } catch (error) {
+            console.error("Error during form submission:", error);
+            alert("An error occurred. Please try again.");
+        }
     }
 
-  return (
-    <div>
-        <h1>Staff</h1>
+    return (
+        <div>
+            <h1>Staff</h1>
 
-        <form action="POST">
-            <input type="text" onChange={(e) => {(e.target.value)}} placeholder='Username' />
-            <input type="password" onChange={(e) => {(e.target.value)}} placeholder='Password'/>
+            {/* Form for staff login */}
+            <form onSubmit={handleSubmit}>
+                {/* Input field for username */}
+                <input
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="Username"
+                    required
+                />
 
-            <input type="submit" />
+                {/* Input field for password */}
+                <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Password"
+                    required
+                />
 
-        </form>
+                {/* Submit button */}
+                <input type="submit" value="Log In" />
+            </form>
 
-        <br />
-        <p>OR</p>
-        <br />
-        
-        <Link to="/"> Register as Guest </Link>
+            <br />
+            <p>OR</p>
+            <br />
 
-    </div>
-  )
-}
+            {/* Link to Guest registration page */}
+            <Link to="/">Register as Guest</Link>
+        </div>
+    );
+};
 
-export default Staff
+export default Staff;
