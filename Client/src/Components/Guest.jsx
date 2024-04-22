@@ -4,58 +4,83 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
 const Guest = () => {
+    const navigate = useNavigate();
 
-    const history = useNavigate();
-
-    const [text, setText] = useState('');
+    // State variables to hold form input values
+    const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
 
-    async function submit(e){
-        e.preventDefault();
+    // Function to handle form submission
+    async function handleSubmit(e) {
+        e.preventDefault(); // Prevent form from refreshing the page
 
-        try{
+        // Validate input fields
+        if (!username) {
+            alert("Please enter a username");
+            return;
+        }
 
-            await axios.post("http://localhost:8000/", {
-                text, email
-            })
-            .then(res => {
-                if(res.data =="exist"){
-                    alert("Your account has already registered")
-                }
-                else if(res.data =="notexist"){
-                    history("/home",{state:{id:text}})
-                }
-            })
-            .catch(e => {
-                alert("wrong details")
-                console.log(e);
-            })
+        if (!email) {
+            alert("Please enter an email address");
+            return;
+        }
 
-        }catch(e){
-            console.log(e);
-        }   
+        try {
+            // Send POST request to server
+            const response = await axios.post("http://localhost:8000/", {
+                text: username,
+                email: email
+            });
+
+            // Handle server response
+            if (response.data === "exist") {
+                alert("Your account is already registered");
+            } else if (response.data === "notexist") {
+                // Navigate to home page if registration is successful
+                navigate("/home", { state: { id: username } });
+            }
+        } catch (error) {
+            console.error("Error during form submission:", error);
+            alert("An error occurred. Please try again.");
+        }
     }
 
-  return (
-    <div>
-        <h1>Guest:</h1>
+    return (
+        <div>
+            <h1>Guest:</h1>
 
-        <form action="POST">
-            <input type="text" onChange={(e) => {(e.target.value)}} placeholder='Username' />
-            <input type="email" onChange={(e) => {(e.target.value)}} placeholder='Email'/>
+            {/* Form for guest registration */}
+            <form onSubmit={handleSubmit}>
+                {/* Input field for username */}
+                <input
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="Username"
+                    required
+                />
 
-            <input type="submit" />
+                {/* Input field for email */}
+                <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Email"
+                    required
+                />
 
-        </form>
+                {/* Submit button */}
+                <input type="submit" value="Register" />
+            </form>
 
-        <br />
-        <p>OR</p>
-        <br />
-        
-        <Link to="/staff">Are you Staff ? </Link>
+            <br />
+            <p>OR</p>
+            <br />
 
-    </div>
-  )
-}
+            {/* Link to Staff registration page */}
+            <Link to="/staff">Are you Staff?</Link>
+        </div>
+    );
+};
 
-export default Guest
+export default Guest;
